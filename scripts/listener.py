@@ -5,13 +5,13 @@ from std_msgs.msg import String
 i = 0
 pygame.init()
 white = (255, 255, 255)
-black = (0,0,0)
-blue = (0,0,255)
-sky_blue = (135,206,250)
-green = (0,255,0)
-red = (255,0,0)
+black = (0, 0, 0)
+blue = (0, 0, 255)
+sky_blue = (135, 206, 250)
+green = (0, 255, 0)
+red = (255, 0, 0)
 
-gameDisplay = pygame.display.set_mode((800,600))
+gameDisplay = pygame.display.set_mode((800, 600))
 pygame.display.set_caption('Kuglice')
 
 gameExit = False
@@ -20,10 +20,10 @@ gameExit = False
 def callback(data):
     global i
     i += 1
-    rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
-    if i%10 == 0:
+    rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data[28:33])
+    if i % 50 == 0:
         gameExit = False
-        dubina = float(data.data[17:22])
+        dubina = float(data.data[28:33])
         pozicija = int(200 - dubina * 40)
         if not gameExit:
             for event in pygame.event.get():
