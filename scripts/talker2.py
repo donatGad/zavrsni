@@ -43,7 +43,7 @@ def otpor(h, v, r, rv, rz, d):
             y = 0.5 * rv * d * A * v ** 2 * predz(v)
         elif h > 0:
             y = 0.5 * rz * d * A * v ** 2 * predz(v)
-            else:
+        else:
             y1 = 0.5 * rz * d * a * v ** 2 * predz(v)
             y2 = 0.5 * rv * d * (A-a) * v ** 2 * predz(v)
             y = y1 + y2
