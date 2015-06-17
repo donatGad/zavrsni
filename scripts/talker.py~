@@ -1,0 +1,128 @@
+#!/usr/bin/env python
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2008, Willow Garage, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of Willow Garage, Inc. nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Revision $Id$
+
+## Simple talker demo that published std_msgs/Strings messages
+## to the 'chatter' topic
+
+import rospy
+from std_msgs.msg import String
+
+m=0.5
+r=0.15
+pi=3.14
+rv=1000
+rz=1.225
+g=9.81
+d=0.47
+h0=-10
+T=0.001
+Tend=10
+
+def predz(x):
+    if x< 0:
+        return -1
+    else:
+        return 1
+
+def uzgon(h,r,pi,rv,rz,g):
+    Vu = pi * (r+h)**2 * (2*r-h) / 3
+    V = 4 * r**3 * pi / 3
+    if h < -r: 
+        y = rv * g * V
+    elif h > r:
+        y = rz * g * V
+    else:
+        y = rz * g * Vu + rv * g * (V - Vu)
+    return y
+
+def otpor(h,v,r,rv,rz,d):
+    
+    A=2*r**2*pi 
+    a=2*r*pi*(r-abs(h))
+
+    if v>0:
+        if h < -r:
+            y=0.5*rv*d*A*v**2*predz(v)
+        elif h > 0:
+            y=0.5*rz*d*A*v**2*predz(v)
+        else:
+            y=0.5*rz*d*a*v**2*predz(v) + 0.5*rv*d*(A-a)*v**2*predz(v)
+    elif h>r:
+        y=0.5*rz*d*A*v**2*predz(v)
+    elif h<0:
+        y=0.5*rv*d*A*v**2*predz(v)
+    else:
+        y=0.5*rv*d*a*v**2*predz(v) + 0.5*rz*d*(A-a)*v**2*predz(v)
+    return y
+
+
+
+def simulator(m,h0,pi,rv,rz,g,T,d):
+	v=[]
+	h=[]
+	v.append(0)
+	v.append(0)
+	h.append(h0)
+	h.append(h0)
+	i=2
+	ch=0
+	temp=0
+	pub = rospy.Publisher('pozicija', String, queue_size=10)
+	rospy.init_node('talker', anonymous=True)
+	rate = rospy.Rate(1/T) # 10hz
+	while not rospy.is_shutdown():
+		hi=(T**2/m)*(uzgon(h[i-1], r, pi, rv, rz, g) - otpor(h[i-1], v[i-1], r, rv, rz, d) - m*g) + 2*h[i-1] - h[i-2]
+		h.append(hi)
+		vi=1/T*(h[i]-h[i-1])
+		v.append(vi)
+		poruka = "Trenutna dubina: %.2f %.2f %.2f" %(h[i], m, temp)
+		rospy.loginfo(poruka)
+		pub.publish(poruka)
+		i=i+1
+		if vi<0 and ch == 0:
+			temp=m
+			ch=1	
+			m = 3*4188.79*r**3
+		if hi< h0 and ch==1:
+			m = temp
+			ch=0
+		rate.sleep()
+				
+
+if __name__ == '__main__':
+	try:
+		simulator(m,h0,pi,rv,rz,g,T,d)
+	except rospy.ROSInterruptException:
+		pass
