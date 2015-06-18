@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import String
 
-m = 0.5
+from std_msgs.msg import String, Float32MultiArray
+
+m = [0.5, 0.5, 0.5]
 r = 0.15
 pi = 3.14
 rv = 1000
@@ -77,31 +78,37 @@ def simulator(br_kug, m, h0, pi, rv, rz, g, T, d):
         h[i][1] = h0
         temp[i] = 0
 
-    pub = rospy.Publisher('pozicija', String, queue_size=10)
-    rospy.init_node('simulator', anonymous=True)
+    pub = rospy.Publisher('pozicija', Float32MultiArray, queue_size=10)
     rate = rospy.Rate(1/T)   # 10hz
     while not rospy.is_shutdown():
+        dubina = Float32MultiArray()
         for i in range(br_kug):
-            (h[i][2], v[i][2]) = pozicija(m, h[i][0], h[i][1], v[i][0], v[i][1], T, r, pi, rv, rz, g, d)
-        poruka = "Trenutna dubina %.0f. kuglice: %.2f" % (i+1, h[i][2])
-        rospy.loginfo(poruka)
-        pub.publish(poruka)
-        h[i][0] = h[i][1]
-        h[i][1] = h[i][2]
-        v[i][0] = v[i][1]
-        v[i][1] = v[i][2]
-        if v[i][2] < 0 and ch[i] == 0:
-            temp[i] = m
-            ch[i] = 1
-            m = 3 * 4188.79 * r ** 3
-        if h[i][2] < h0 and ch[i] == 1:
-            m = temp[i]
-            ch[i]= 0
+            (h[i][2], v[i][2]) = pozicija(m[i], h[i][0], h[i][1], v[i][0], v[i][1], T, r, pi, rv, rz, g, d)
+            dubina.data.append(h[i][2])
+
+            poruka = "Trenutna dubina %.0f. kuglice: %.2f" % (i+1, h[i][2])
+            #rospy.loginfo(poruka)
+            h[i][0] = h[i][1]
+            h[i][1] = h[i][2]
+            v[i][0] = v[i][1]
+            v[i][1] = v[i][2]
+            if v[i][2] < 0 and ch[i] == 0:
+                temp[i] = m[i]
+                ch[i] = 1
+                m[i] = 3 * 4188.79 * r ** 3
+            if h[i][2] < h0 and ch[i] == 1:
+                m[i] = temp[i]
+                ch[i]= 0
+
+        pub.publish(dubina)
         rate.sleep()
 
 
 if __name__ == '__main__':
+    rospy.init_node('simulator', anonymous=True)
     try:
-        simulator(1, m, h0, pi, rv, rz, g, T, d)
+        m = rospy.get_param("~masa")
+        print(m)
+        simulator(len(m), m, h0, pi, rv, rz, g, T, d)
     except rospy.ROSInterruptException:
             pass

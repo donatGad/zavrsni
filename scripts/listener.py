@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import pygame
 import rospy
-from std_msgs.msg import String
+
+from std_msgs.msg import String, Float32MultiArray
 
 
 n = 0
@@ -24,16 +25,19 @@ gameExit = False
 def callback(data):
     global n
     n += 1
-    br_kug = 1
+    br_kug = len(data.data)
     dubina = [0 for x in range(br_kug)]
     pozicija_x = [0 for x in range(br_kug)]
     pozicija_y = [0 for x in range(br_kug)]
-    rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data[28:33])
+    #rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data[28:33])
 
-    if n % 50 == 0:
+    if n % 1 == 0:
         gameExit = False
+        gameDisplay.fill(blue)
+        pygame.draw.rect(gameDisplay, sky_blue, [0, 0, disp_sirina, disp_visina / 4])
+
         for i in range(br_kug):
-            dubina[i] = float(data.data[28:33])
+            dubina[i] = data.data[i]
             pozicija_y[i] = int(disp_visina/4 - dubina[i] * 40)
             pozicija_x[i] = int(disp_sirina / (br_kug + 1) * (i + 1))
             if not gameExit:
@@ -41,10 +45,7 @@ def callback(data):
                     if event.type == pygame.QUIT:
                         gameExit = True
 
-                gameDisplay.fill(blue)
-                pygame.draw.rect(gameDisplay, sky_blue, [0, 0, disp_sirina, disp_visina / 4])
                 pygame.draw.circle(gameDisplay, red, [pozicija_x[i], pozicija_y[i]], 20)
-                pygame.display.flip()
             else:
                 pygame.quit()
                 quit()
@@ -60,7 +61,7 @@ def listener():
     # run simultaneously.
     rospy.init_node('listener', anonymous=True)
 
-    rospy.Subscriber("pozicija", String, callback)
+    rospy.Subscriber("pozicija", Float32MultiArray, callback, queue_size = 1)
 
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()

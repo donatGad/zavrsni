@@ -1,0 +1,9 @@
+<launch>
+	<node pkg="zavrsni" type="talker3.py" name="Simulator">
+		<rosparam param="masa">[0.15, 0.1, 0.3]</rosparam>		
+		<rosparam param="poc_dub">[-10, -5, -8]</rosparam>
+	</node>
+
+	<node pkg="zavrsni" type="listener.py" name="display" />
+	
+</launch>
