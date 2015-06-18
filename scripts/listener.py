@@ -2,8 +2,12 @@
 import pygame
 import rospy
 from std_msgs.msg import String
-i = 0
+
+
+n = 0
 pygame.init()
+disp_sirina = 800
+disp_visina = 600
 white = (255, 255, 255)
 black = (0, 0, 0)
 blue = (0, 0, 255)
@@ -11,32 +15,40 @@ sky_blue = (135, 206, 250)
 green = (0, 255, 0)
 red = (255, 0, 0)
 
-gameDisplay = pygame.display.set_mode((800, 600))
+gameDisplay = pygame.display.set_mode((disp_sirina, disp_visina))
 pygame.display.set_caption('Kuglice')
 
 gameExit = False
 
 
 def callback(data):
-    global i
-    i += 1
+    global n
+    n += 1
+    br_kug = 1
+    dubina = [0 for x in range(br_kug)]
+    pozicija_x = [0 for x in range(br_kug)]
+    pozicija_y = [0 for x in range(br_kug)]
     rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data[28:33])
-    if i % 50 == 0:
-        gameExit = False
-        dubina = float(data.data[28:33])
-        pozicija = int(200 - dubina * 40)
-        if not gameExit:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    gameExit = True
 
-            gameDisplay.fill(blue)
-            pygame.draw.rect(gameDisplay, sky_blue, [0, 0, 800, 200])
-            pygame.draw.circle(gameDisplay, red, [400, pozicija], 20)
-            pygame.display.flip()
-        else:
-            pygame.quit()
-            quit()
+    if n % 50 == 0:
+        gameExit = False
+        for i in range(br_kug):
+            dubina[i] = float(data.data[28:33])
+            pozicija_y[i] = int(disp_visina/4 - dubina[i] * 40)
+            pozicija_x[i] = int(disp_sirina / (br_kug + 1) * (i + 1))
+            if not gameExit:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        gameExit = True
+
+                gameDisplay.fill(blue)
+                pygame.draw.rect(gameDisplay, sky_blue, [0, 0, disp_sirina, disp_visina / 4])
+                pygame.draw.circle(gameDisplay, red, [pozicija_x[i], pozicija_y[i]], 20)
+                pygame.display.flip()
+            else:
+                pygame.quit()
+                quit()
+        pygame.display.flip()
 
 
 def listener():
