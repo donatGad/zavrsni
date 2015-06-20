@@ -24,28 +24,33 @@ gameExit = False
 
 def callback(data):
     global n
+    h0 = rospy.get_param('zad_dub', -10)
+    r = rospy.get_param('radius', 0.15)
+
+    velicina = int(- 1 * r * 1500 / h0)
     n += 1
     br_kug = len(data.data)
     dubina = [0 for x in range(br_kug)]
     pozicija_x = [0 for x in range(br_kug)]
     pozicija_y = [0 for x in range(br_kug)]
-    #rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data[28:33])
+    # rospy.loginfo(rospy.get_caller_id() + "I heard %s", velicina)
+    # rospy.loginfo(h0)
 
     if n % 1 == 0:
         gameExit = False
         gameDisplay.fill(blue)
-        pygame.draw.rect(gameDisplay, sky_blue, [0, 0, disp_sirina, disp_visina / 4])
+        pygame.draw.rect(gameDisplay, sky_blue, [0, 0, disp_sirina, disp_visina / 5])
 
         for i in range(br_kug):
             dubina[i] = data.data[i]
-            pozicija_y[i] = int(disp_visina/4 - dubina[i] * 40)
+            pozicija_y[i] = int(disp_visina / 5 + (14 * dubina[i] * disp_visina / (20 * h0)))
             pozicija_x[i] = int(disp_sirina / (br_kug + 1) * (i + 1))
             if not gameExit:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         gameExit = True
 
-                pygame.draw.circle(gameDisplay, red, [pozicija_x[i], pozicija_y[i]], 20)
+                pygame.draw.circle(gameDisplay, red, [pozicija_x[i], pozicija_y[i]], velicina)
             else:
                 pygame.quit()
                 quit()

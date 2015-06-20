@@ -1,9 +1,17 @@
 <launch>
-	<node pkg="zavrsni" type="talker3.py" name="Simulator">
-		<rosparam param="masa">[0.15, 0.1, 0.3]</rosparam>		
-		<rosparam param="poc_dub">[-10, -5, -8]</rosparam>
+
+	<arg name="dubina" default="-10"/> 
+	<arg name="masa" default="0.5"/>
+		
+	
+	<node pkg="zavrsni" type="talker5.py" name="Simulator">
+		<rosparam param="zad_dub" subst_value="True">$(arg dubina)</rosparam>
+		<param name="masa" value="$(arg masa)"/>
+		
+		'<rosparam param="masa">[0.15, 0.1, 0.3]</rosparam>'
+		'<rosparam param="poc_dub">[-10, -5, -8]</rosparam>'
 	</node>
 
-	<node pkg="zavrsni" type="listener.py" name="display" />
+	<node pkg="zavrsni" type="listener.py" name="Display" />
 	
 </launch>
