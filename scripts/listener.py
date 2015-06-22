@@ -27,7 +27,11 @@ def callback(data):
     h0 = rospy.get_param('zad_dub', -10)
     r = rospy.get_param('radius', 0.15)
 
-    velicina = int(- 1 * r * 1500 / h0)
+    velicina = 20
+    if velicina < 10:
+        velicina = 10
+    if velicina > 30:
+        velicina = 30
     n += 1
     br_kug = len(data.data)
     dubina = [0 for x in range(br_kug)]

@@ -3,7 +3,7 @@ import rospy
 
 from std_msgs.msg import String, Float32MultiArray
 
-r = 0.15
+# r = 0.15
 pi = 3.14
 rv = 1000
 rz = 1.225
@@ -71,11 +71,16 @@ def simulator(br_kug, h0, pi, rv, rz, g, T, d):
     ch = [0 for x in range(br_kug)]
     temp = [0 for x in range(br_kug)]
     vozi = [0 for x in range(br_kug)]
-    m = [0.5 for x in range(br_kug)]
+    m = [masa for x in range(br_kug)]
 
     pub = rospy.Publisher('pozicija', Float32MultiArray, queue_size=10)
     rate = rospy.Rate(1/T)   # 1000hz
     vozi[0] = 1
+    for i in range(br_kug):    
+        temp[i] = m[i]
+        ch[i] = 1
+        m[i] = 3 * 4188.79 * r ** 3
+
     while not rospy.is_shutdown():
         dubina = Float32MultiArray()
         for i in range(br_kug):
@@ -98,14 +103,9 @@ def simulator(br_kug, h0, pi, rv, rz, g, T, d):
                 m[i] = temp[i]
                 ch[i] = 0
 
-            if h[i][2] < 2 * h0 / br_kug:
-                if i + 1 == br_kug:
-                    vozi[0] = 1
-                else:
+            if h[i][2] < (2 * h0 / (br_kug + 1)):
+                if i + 1 < br_kug:
                     vozi[i + 1] = 1
-
-            poruka = "%.0f masa %.2f temp: %.2f change: %.2f" % (i, m[i], temp[i], ch[i])
-            rospy.loginfo(poruka)
 
 
         pub.publish(dubina)
@@ -114,9 +114,11 @@ def simulator(br_kug, h0, pi, rv, rz, g, T, d):
 
 if __name__ == '__main__':
     rospy.init_node('simulator', anonymous=True)
-    rospy.set_param('radius', r)
+    r = rospy.get_param('radius', 0.15)
+    broj = rospy.get_param('broj', 5)
     h0 = rospy.get_param('zad_dub', -10)
+    masa = rospy.get_param('masa', -10)
     try:
-        simulator(3, h0, pi, rv, rz, g, T, d)
+        simulator(broj, h0, pi, rv, rz, g, T, d)
     except rospy.ROSInterruptException:
             pass
