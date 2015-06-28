@@ -1,2 +1,0 @@
-		<rosparam param="masa">[0.15, 0.1, 0.3]</rosparam>
-		<rosparam param="poc_dub">[-10, -5, -8]</rosparam>
