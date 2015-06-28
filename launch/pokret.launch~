@@ -11,9 +11,9 @@
 	<rosparam param="radius" subst_value="True">$(arg radius)</rosparam>
 
 	
-	<node pkg="zavrsni" type="simulator.py" name="Simulator" />
+	<node pkg="zavrsni" type="talker5.py" name="Simulator" />
 
-	<node pkg="zavrsni" type="display.py" name="Display" />
+	<node pkg="zavrsni" type="listener.py" name="Display" />
 
 	
 </launch>
